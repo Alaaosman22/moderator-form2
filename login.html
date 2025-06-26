@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تسجيل الدخول - نظام تسجيل الطلبات</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>تسجيل الدخول</h2>
+    <input type="text" id="username" placeholder="اسم المستخدم" required />
+    <input type="password" id="password" placeholder="كلمة المرور" required />
+    <button onclick="login()">دخول</button>
+    <div class="error" id="errorMsg"></div>
+  </div>
+
+  <script>
+    const users = {
+      "admin": { password: "151515", role: "admin" },
+      "mod1": { password: "1234", role: "moderator" },
+      "mod2": { password: "5678", role: "moderator" }
+    };
+
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (users[username] && users[username].password === password) {
+        localStorage.setItem("username", username);
+        localStorage.setItem("role", users[username].role);
+        window.location.href = "dashboard.html";
+      } else {
+        errorMsg.innerText = "اسم المستخدم أو كلمة المرور غير صحيحة";
+      }
+    }
+  </script>
+</body>
+</html>
