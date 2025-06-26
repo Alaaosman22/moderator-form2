@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>نظام الطلبات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    input, textarea, button, select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .hidden { display: none; }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    .logout {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .logout button {
+      background-color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- تسجيل الدخول -->
+    <div id="loginSection">
+      <h2>تسجيل الدخول</h2>
+      <input type="text" id="loginUsername" placeholder="اسم المستخدم" />
+      <input type="password" id="loginPassword" placeholder="كلمة المرور" />
+      <button onclick="login()">دخول</button>
+      <p id="loginError" style="color:red;"></p>
+    </div>
+
+    <!-- نموذج الطلب -->
+    <div id="formSection" class="hidden">
+      <h2>تسجيل الطلب</h2>
+      <form id="orderForm">
+        <input type="text" name="customer_name" placeholder="اسم العميل" required />
+        <input type="tel" name="phone" placeholder="رقم التليفون" required />
+        <textarea name="address" placeholder="العنوان" required></textarea>
+        <input type="text" name="governorate" placeholder="المحافظة" required />
+        <input type="text" name="product" placeholder="اسم المنتج" required />
+        <input type="hidden" name="moderator_code" id="moderator_code" />
+        <button type="submit">تسجيل الطلب</button>
+      </form>
+      <p id="formMsg" style="color:green;"></p>
+      <button onclick="showDashboard()" style="margin-top:20px;">عرض الطلبات</button>
+    </div>
+
+    <!-- لوحة التحكم -->
+    <div id="dashboardSection" class="hidden">
+      <h2>لوحة التحكم</h2>
+      <p id="welcomeMsg"></p>
+      <table>
+        <thead>
+          <tr>
+            <th>العميل</th>
+            <th>الهاتف</th>
+            <th>العنوان</th>
+            <th>المحافظة</th>
+            <th>المنتج</th>
+            <th>المودريتور</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTable"></tbody>
+      </table>
+      <div class="logout">
+        <button onclick="logout()">تسجيل الخروج</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const users = {
+      "admin": { password: "151515", role: "admin" },
+      "mod1": { password: "1234", role: "moderator" },
+      "mod2": { password: "5678", role: "moderator" }
+    };
+
+    const loginSection = document.getElementById("loginSection");
+    const formSection = document.getElementById("formSection");
+    const dashboardSection = document.getElementById("dashboardSection");
+
+    function login() {
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      const error = document.getElementById("loginError");
+
+      if (users[username] && users[username].password === password) {
+        localStorage.setItem("username", username);
+        localStorage.setItem("role", users[username].role);
+        error.innerText = "";
+        showForm();
+      } else {
+        error.innerText = "اسم المستخدم أو كلمة المرور غير صحيحة";
+      }
+    }
+
+    function showForm() {
+      loginSection.classList.add("hidden");
+      formSection.classList.remove("hidden");
+      document.getElementById("moderator_code").value = localStorage.getItem("username");
+    }
+
+    function showDashboard() {
+      formSection.classList.add("hidden");
+      dashboardSection.classList.remove("hidden");
+
+      const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+      const role = localStorage.getItem("role");
+      const user = localStorage.getItem("username");
+
+      document.getElementById("welcomeMsg").innerText = `مرحباً ${user} (${role})`;
+
+      const filtered = role === "admin" ? orders : orders.filter(o => o.moderator_code === user);
+      const table = document.getElementById("ordersTable");
+      table.innerHTML = "";
+
+      filtered.forEach(o => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${o.customer_name}</td>
+          <td>${o.phone}</td>
+          <td>${o.address}</td>
+          <td>${o.governorate}</td>
+          <td>${o.product}</td>
+          <td>${o.moderator_code}</td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    function logout() {
+      localStorage.clear();
+      location.reload();
+    }
+
+    document.getElementById("orderForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const order = Object.fromEntries(formData.entries());
+
+      // إرسال إلى Google Sheets
+      fetch("https://script.google.com/macros/s/AKfycbxc8ghYnge1wn9cwEUAs2MuL2Bs3vSYu0ZHW2uu8wada4VrJPA2ekiit8KTmK8BMz07/exec", {
+        method: "POST",
+        body: formData
+      })
+      .then(() => {
+        // حفظ محلي للعرض في لوحة التحكم
+        let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+        orders.push(order);
+        localStorage.setItem("orders", JSON.stringify(orders));
+
+        this.reset();
+        document.getElementById("formMsg").innerText = "✅ تم تسجيل الطلب بنجاح";
+      })
+      .catch(() => {
+        document.getElementById("formMsg").innerText = "❌ حدث خطأ أثناء الإرسال";
+      });
+    });
+
+    // إعادة تحميل الجلسة
+    window.onload = () => {
+      const user = localStorage.getItem("username");
+      const role = localStorage.getItem("role");
+      if (user && role) {
+        showForm();
+      }
+    };
+  </script>
+</body>
+</html>
