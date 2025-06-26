@@ -1,79 +1,108 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>نموذج تسجيل الطلب</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(to right, #f7f8fa, #e2ecff);
       padding: 20px;
       direction: rtl;
     }
     .form-container {
-      background-color: white;
+      background-color: #ffffff;
       padding: 30px;
-      border-radius: 12px;
-      max-width: 500px;
+      border-radius: 16px;
+      max-width: 600px;
       margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .form-container::before {
+      content: "";
+      position: absolute;
+      top: -40px;
+      left: -40px;
+      width: 150px;
+      height: 150px;
+      background-image: url('https://cdn-icons-png.flaticon.com/512/744/744466.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      opacity: 0.05;
+    }
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    label {
+      font-weight: bold;
+      color: #34495e;
     }
     input, select, textarea, button {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin-top: 10px;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid #ccc;
       box-sizing: border-box;
+      font-size: 16px;
     }
     button {
-      background-color: #28a745;
+      background-color: #3498db;
       color: white;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
     button:hover {
-      background-color: #218838;
+      background-color: #2980b9;
     }
-    .summary {
+    #msg {
+      text-align: center;
+      margin-top: 15px;
+      color: green;
+      font-weight: bold;
+    }
+    #summarySection {
+      display: none;
       margin-top: 40px;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      margin-top: 15px;
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 8px;
+      padding: 10px;
       text-align: center;
     }
     th {
-      background-color: #e9ecef;
+      background-color: #f2f2f2;
     }
     .download-btn {
+      display: inline-block;
       margin-top: 20px;
-      display: block;
-      background-color: #007bff;
-      color: #fff;
-      text-align: center;
+      background-color: #27ae60;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
       text-decoration: none;
-      padding: 10px;
-      border-radius: 6px;
       font-weight: bold;
     }
     .download-btn:hover {
-      background-color: #0056b3;
+      background-color: #1e8449;
     }
   </style>
 </head>
 <body>
+  <div style="text-align: center; font-size: 24px; font-weight: bold; color: #8e44ad; margin-bottom: 20px; letter-spacing: 2px; text-shadow: 1px 1px 3px rgba(0,0,0,0.2);">
+    ★☆ أبو محسن & أبو علاء ☆★
+  </div>
   <div class="form-container">
     <h2>نموذج تسجيل الطلب</h2>
     <form id="orderForm">
@@ -81,7 +110,7 @@
       <input type="text" name="customer_name" required />
 
       <label>رقم التليفون</label>
-      <input type="tel" name="phone" required />
+      <input type="tel" name="phone" required pattern="01[0-2,5]{1}[0-9]{8}" placeholder="مثال: 01012345678" />
 
       <label>العنوان</label>
       <textarea name="address" rows="3" required></textarea>
@@ -93,21 +122,14 @@
       <input type="text" name="product" required />
 
       <label>كود المودريتور</label>
-      <select name="moderator_code" required>
-        <option value="MOD01">MOD01</option>
-        <option value="MOD02">MOD02</option>
-        <option value="MOD03">MOD03</option>
-        <option value="MOD04">MOD04</option>
-        <option value="MOD05">MOD05</option>
-        <option value="MOD06">MOD06</option>
-      </select>
+      <input type="text" name="moderator_code" required placeholder="مثال: MOD01" />
 
-      <button type="submit">تسجيل الطلب</button>
+      <button type="submit" id="submitBtn">تسجيل الطلب</button>
     </form>
     <p id="msg"></p>
   </div>
 
-  <div class="summary">
+  <div class="summary" id="summarySection">
     <h3>إجمالي الطلبات حسب كل مودريتور</h3>
     <table>
       <thead>
@@ -129,9 +151,11 @@
   </div>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwT1arOi6WOZ5OTkWPig_1Curht9_LTxXCIVlIcq_3sdtzTpmFarBcki1BcwNA_GFD8/exec';
+    const scriptURL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
     const form = document.getElementById('orderForm');
     const msg = document.getElementById('msg');
+    const summarySection = document.getElementById('summarySection');
+    const button = document.getElementById('submitBtn');
 
     const counts = {
       MOD01: 0,
@@ -145,15 +169,40 @@
     form.addEventListener('submit', e => {
       e.preventDefault();
       const data = new FormData(form);
-      const moderator = data.get('moderator_code');
-      counts[moderator]++;
+      const moderator = data.get('moderator_code').toUpperCase();
+
+      if (!counts.hasOwnProperty(moderator)) {
+        alert("❗ كود المودريتور غير صحيح");
+        return;
+      }
+
+      counts[moderator] = Number(localStorage.getItem(moderator)) + 1 || 1;
+      localStorage.setItem(moderator, counts[moderator]);
       document.getElementById(`${moderator}-count`).innerText = counts[moderator];
 
-      fetch(scriptURL, { method: 'POST', body: data})
-        .then(response => msg.innerText = "تم تسجيل الطلب بنجاح")
-        .catch(error => msg.innerText = "حدث خطأ، حاول مرة أخرى");
-      form.reset();
+      button.disabled = true;
+      msg.innerText = "جاري إرسال الطلب...";
+
+      fetch(scriptURL, { method: 'POST', body: data })
+        .then(response => {
+          msg.innerText = "✅ تم تسجيل الطلب بنجاح!";
+          form.reset();
+        })
+        .catch(error => {
+          msg.innerText = "❌ حدث خطأ، حاول مرة أخرى";
+        })
+        .finally(() => {
+          button.disabled = false;
+        });
     });
+
+    if (window.location.href.includes("admin")) {
+      summarySection.style.display = 'block';
+      for (const key in counts) {
+        const val = localStorage.getItem(key);
+        if (val) document.getElementById(`${key}-count`).innerText = val;
+      }
+    }
   </script>
 </body>
 </html>
