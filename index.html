@@ -2,43 +2,61 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>نظام الطلبات</title>
+  <title>نظام تسجيل الطلبات</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f4f4f4;
+      background: linear-gradient(to right, #a8edea, #fed6e3);
       margin: 0;
-      padding: 20px;
+      padding: 0;
     }
     .container {
-      max-width: 600px;
-      margin: auto;
-      background: white;
+      max-width: 650px;
+      margin: 40px auto;
+      background: #fff;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      border-radius: 16px;
+      box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     h2 {
       text-align: center;
       color: #333;
+      margin-bottom: 25px;
     }
-    input, textarea, button, select {
+    input, textarea, button {
       width: 100%;
       padding: 12px;
       margin-top: 10px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+    input:focus, textarea:focus {
+      border-color: #007bff;
+      outline: none;
+      box-shadow: 0 0 8px rgba(0,123,255,0.2);
     }
     button {
       background-color: #28a745;
       color: white;
       font-weight: bold;
       cursor: pointer;
+      box-shadow: 0 0 0 transparent;
     }
     button:hover {
       background-color: #218838;
+      box-shadow: 0 0 10px #28a74599, 0 0 40px #28a74555;
+      transform: scale(1.01);
     }
     .hidden { display: none; }
     table {
@@ -48,35 +66,41 @@
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 10px;
+      padding: 12px;
       text-align: center;
+      font-size: 15px;
     }
     th {
       background-color: #007bff;
       color: white;
     }
     .logout {
-      margin-top: 20px;
+      margin-top: 25px;
       text-align: center;
     }
     .logout button {
       background-color: #dc3545;
+    }
+    .msg {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container">
 
-    <!-- تسجيل الدخول -->
+    <!-- Login Section -->
     <div id="loginSection">
       <h2>تسجيل الدخول</h2>
       <input type="text" id="loginUsername" placeholder="اسم المستخدم" />
       <input type="password" id="loginPassword" placeholder="كلمة المرور" />
       <button onclick="login()">دخول</button>
-      <p id="loginError" style="color:red;"></p>
+      <p class="msg" id="loginError" style="color:red;"></p>
     </div>
 
-    <!-- نموذج الطلب -->
+    <!-- Form Section -->
     <div id="formSection" class="hidden">
       <h2>تسجيل الطلب</h2>
       <form id="orderForm">
@@ -88,14 +112,14 @@
         <input type="hidden" name="moderator_code" id="moderator_code" />
         <button type="submit">تسجيل الطلب</button>
       </form>
-      <p id="formMsg" style="color:green;"></p>
+      <p class="msg" id="formMsg" style="color:green;"></p>
       <button onclick="showDashboard()" style="margin-top:20px;">عرض الطلبات</button>
     </div>
 
-    <!-- لوحة التحكم -->
+    <!-- Dashboard Section -->
     <div id="dashboardSection" class="hidden">
       <h2>لوحة التحكم</h2>
-      <p id="welcomeMsg"></p>
+      <p class="msg" id="welcomeMsg"></p>
       <table>
         <thead>
           <tr>
@@ -186,17 +210,14 @@
       const formData = new FormData(this);
       const order = Object.fromEntries(formData.entries());
 
-      // إرسال إلى Google Sheets
       fetch("https://script.google.com/macros/s/AKfycbxc8ghYnge1wn9cwEUAs2MuL2Bs3vSYu0ZHW2uu8wada4VrJPA2ekiit8KTmK8BMz07/exec", {
         method: "POST",
         body: formData
       })
       .then(() => {
-        // حفظ محلي للعرض في لوحة التحكم
         let orders = JSON.parse(localStorage.getItem("orders") || "[]");
         orders.push(order);
         localStorage.setItem("orders", JSON.stringify(orders));
-
         this.reset();
         document.getElementById("formMsg").innerText = "✅ تم تسجيل الطلب بنجاح";
       })
@@ -205,7 +226,6 @@
       });
     });
 
-    // إعادة تحميل الجلسة
     window.onload = () => {
       const user = localStorage.getItem("username");
       const role = localStorage.getItem("role");
